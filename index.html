@@ -1,55 +1,36 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>My Chat App</title>
-    <!-- Firebase CDN -->
-    <script type="module">
-      // Firebase SDKs import
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-      import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Firebase Chat App</title>
+</head>
+<body>
+  <h1>Welcome to My Firebase Chat App 🚀</h1>
+  <p>If you see this message, Firebase is initialized successfully!</p>
 
-      // 🔑 Yeh tumhara config hai (jo tumhare screenshot me tha)
-      const firebaseConfig = {
-        apiKey: "AIzaSyC_z1WBPfo_OYXezN7t8zTV27nodv0",
-        authDomain: "mychatapp-fdf70.firebaseapp.com",
-        projectId: "mychatapp-fdf70",
-        storageBucket: "mychatapp-fdf70.appspot.com",
-        messagingSenderId: "899929177351",
-        appId: "1:899929177351:web:9148c13f1ee5b3",
-        measurementId: "G-FQMC73V50K",
-      };
+  <!-- Firebase SDK -->
+  <script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-analytics.js";
 
-      // Firebase initialize
-      const app = initializeApp(firebaseConfig);
-      const db = getDatabase(app);
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyC_z1WBPfo_OYXezN7t8zTV27nc3veWe9M",
+      authDomain: "mychatapp-fdf70.firebaseapp.com",
+      projectId: "mychatapp-fdf70",
+      storageBucket: "mychatapp-fdf70.firebasestorage.app",
+      messagingSenderId: "899929177351",
+      appId: "1:899929177351:web:9148c13f1ee5b39b1b19a2",
+      measurementId: "G-FQMC73V50K"
+    };
 
-      // Message bhejne ka function
-      function sendMessage() {
-        let msg = document.getElementById("message").value;
-        push(ref(db, "messages"), {
-          text: msg,
-          time: Date.now()
-        });
-        document.getElementById("message").value = "";
-      }
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
 
-      // Messages ko live display karna
-      onValue(ref(db, "messages"), (snapshot) => {
-        let output = document.getElementById("chat");
-        output.innerHTML = "";
-        snapshot.forEach((child) => {
-          output.innerHTML += "<p>" + child.val().text + "</p>";
-        });
-      });
-
-      // Button connect
-      window.sendMessage = sendMessage;
-    </script>
-  </head>
-  <body>
-    <h2>My Chat App</h2>
-    <div id="chat"></div>
-    <input id="message" placeholder="Type a message..." />
-    <button onclick="sendMessage()">Send</button>
-  </body>
+    console.log("✅ Firebase initialized successfully!", app);
+  </script>
+</body>
 </html>
