@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>My Chat App</title>
+    <!-- Firebase CDN -->
+    <script type="module">
+      // Firebase SDKs import
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+      import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+
+      // 🔑 Yeh tumhara config hai (jo tumhare screenshot me tha)
+      const firebaseConfig = {
+        apiKey: "AIzaSyC_z1WBPfo_OYXezN7t8zTV27nodv0",
+        authDomain: "mychatapp-fdf70.firebaseapp.com",
+        projectId: "mychatapp-fdf70",
+        storageBucket: "mychatapp-fdf70.appspot.com",
+        messagingSenderId: "899929177351",
+        appId: "1:899929177351:web:9148c13f1ee5b3",
+        measurementId: "G-FQMC73V50K",
+      };
+
+      // Firebase initialize
+      const app = initializeApp(firebaseConfig);
+      const db = getDatabase(app);
+
+      // Message bhejne ka function
+      function sendMessage() {
+        let msg = document.getElementById("message").value;
+        push(ref(db, "messages"), {
+          text: msg,
+          time: Date.now()
+        });
+        document.getElementById("message").value = "";
+      }
+
+      // Messages ko live display karna
+      onValue(ref(db, "messages"), (snapshot) => {
+        let output = document.getElementById("chat");
+        output.innerHTML = "";
+        snapshot.forEach((child) => {
+          output.innerHTML += "<p>" + child.val().text + "</p>";
+        });
+      });
+
+      // Button connect
+      window.sendMessage = sendMessage;
+    </script>
+  </head>
+  <body>
+    <h2>My Chat App</h2>
+    <div id="chat"></div>
+    <input id="message" placeholder="Type a message..." />
+    <button onclick="sendMessage()">Send</button>
+  </body>
+</html>
