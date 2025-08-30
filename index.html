@@ -1,21 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Firebase Chat App</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Firebase Chat App 🚀</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f9; }
+    h1 { text-align: center; }
+    #chat-box { 
+      border: 1px solid #ccc; 
+      padding: 10px; 
+      background: white; 
+      height: 400px; 
+      overflow-y: scroll; 
+    }
+    .msg { margin: 5px 0; padding: 5px; border-radius: 5px; }
+    .msg strong { color: #0077cc; }
+    #form { display: flex; margin-top: 10px; }
+    #name, #message { padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+    #name { width: 20%; margin-right: 5px; }
+    #message { flex: 1; margin-right: 5px; }
+    button { padding: 10px 15px; border: none; border-radius: 5px; background: #0077cc; color: white; cursor: pointer; }
+    button:hover { background: #005fa3; }
+  </style>
 </head>
 <body>
-  <h1>Welcome to My Firebase Chat App 🚀</h1>
-  <p>If you see this message, Firebase is initialized successfully!</p>
+  <h1>🔥 My Firebase Chat App</h1>
+  <div id="chat-box"></div>
 
-  <!-- Firebase SDK -->
+  <div id="form">
+    <input type="text" id="name" placeholder="Your Name" required />
+    <input type="text" id="message" placeholder="Type a message..." required />
+    <button onclick="sendMessage()">Send</button>
+  </div>
+
   <script type="module">
-    // Import the functions you need from the SDKs you need
+    // Import Firebase SDK
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-analytics.js";
+    import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot } 
+      from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
-    // Your web app's Firebase configuration
+    // Your Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyC_z1WBPfo_OYXezN7t8zTV27nc3veWe9M",
       authDomain: "mychatapp-fdf70.firebaseapp.com",
@@ -28,9 +53,44 @@
 
     // Initialize Firebase
     const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
+    const db = getFirestore(app);
 
-    console.log("✅ Firebase initialized successfully!", app);
+    // Reference to chat collection
+    const chatRef = collection(db, "messages");
+
+    // Send message function
+    async function sendMessage() {
+      const name = document.getElementById("name").value;
+      const message = document.getElementById("message").value;
+
+      if (name && message) {
+        await addDoc(chatRef, {
+          name: name,
+          message: message,
+          timestamp: serverTimestamp()
+        });
+        document.getElementById("message").value = "";
+      }
+    }
+
+    // Listen for new messages (real-time)
+    const q = query(chatRef, orderBy("timestamp"));
+    const chatBox = document.getElementById("chat-box");
+
+    onSnapshot(q, (snapshot) => {
+      chatBox.innerHTML = "";
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        const msgDiv = document.createElement("div");
+        msgDiv.classList.add("msg");
+        msgDiv.innerHTML = `<strong>${data.name}:</strong> ${data.message}`;
+        chatBox.appendChild(msgDiv);
+      });
+      chatBox.scrollTop = chatBox.scrollHeight; // auto scroll
+    });
+
+    // Make sendMessage global
+    window.sendMessage = sendMessage;
   </script>
 </body>
 </html>
