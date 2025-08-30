@@ -2,28 +2,87 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My Chat App</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    #messages { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; margin-bottom: 10px; }
-    .msg { padding: 5px; border-bottom: 1px solid #eee; }
-    input { padding: 8px; width: 70%; }
-    button { padding: 8px; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      background: #f0f2f5;
+    }
+    header {
+      background: #075E54;
+      color: white;
+      padding: 15px;
+      text-align: center;
+      font-size: 20px;
+    }
+    #messages {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .message {
+      max-width: 70%;
+      margin: 5px 0;
+      padding: 10px;
+      border-radius: 10px;
+      word-wrap: break-word;
+    }
+    .sent {
+      background: #DCF8C6;
+      align-self: flex-end;
+    }
+    .received {
+      background: #fff;
+      align-self: flex-start;
+    }
+    #inputArea {
+      display: flex;
+      padding: 10px;
+      background: #fff;
+    }
+    #messageInput {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+      outline: none;
+    }
+    #sendBtn {
+      background: #075E54;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      margin-left: 10px;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+    #sendBtn:hover {
+      background: #0b7d69;
+    }
   </style>
 </head>
 <body>
-  <h2>🔥 My Chat App</h2>
+  <header>💬 My Chat App</header>
+
   <div id="messages"></div>
-  <input id="messageInput" type="text" placeholder="Type a message..." />
-  <button onclick="sendMessage()">Send</button>
+
+  <div id="inputArea">
+    <input type="text" id="messageInput" placeholder="Type a message..." />
+    <button id="sendBtn">Send</button>
+  </div>
 
   <script type="module">
-    // Import Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot } 
-      from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, serverTimestamp, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
-    // Your Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyC_z1WBPfo_OYXezN7t8zTV27nc3veWe9M",
       authDomain: "mychatapp-fdf70.firebaseapp.com",
@@ -34,36 +93,56 @@
       measurementId: "G-FQMC73V50K"
     };
 
-    // Init Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Send message function
-    async function sendMessage() {
-      const input = document.getElementById("messageInput");
-      if (input.value.trim() === "") return;
-      await addDoc(collection(db, "messages"), {
-        text: input.value,
-        timestamp: serverTimestamp()
-      });
-      input.value = "";
-    }
-    window.sendMessage = sendMessage; // expose function to button
-
-    // Listen for messages
-    const q = query(collection(db, "messages"), orderBy("timestamp"));
     const messagesDiv = document.getElementById("messages");
+    const messageInput = document.getElementById("messageInput");
+    const sendBtn = document.getElementById("sendBtn");
 
+    // Username set karna (ek baar prompt hoga, fir localStorage me save hoga)
+    let username = localStorage.getItem("chatUsername");
+    if (!username) {
+      username = prompt("Enter your name:");
+      localStorage.setItem("chatUsername", username);
+    }
+
+    // Send message
+    sendBtn.addEventListener("click", async () => {
+      const text = messageInput.value.trim();
+      if (text) {
+        await addDoc(collection(db, "messages"), {
+          text: text,
+          sender: username,
+          timestamp: serverTimestamp()
+        });
+        messageInput.value = "";
+      }
+    });
+
+    // Load messages in real time
+    const q = query(collection(db, "messages"), orderBy("timestamp"));
     onSnapshot(q, (snapshot) => {
       messagesDiv.innerHTML = "";
       snapshot.forEach((doc) => {
         const data = doc.data();
-        const msgDiv = document.createElement("div");
-        msgDiv.classList.add("msg");
-        msgDiv.textContent = data.text;
-        messagesDiv.appendChild(msgDiv);
+        const div = document.createElement("div");
+        div.classList.add("message");
+
+        if (data.sender === username) {
+          div.classList.add("sent");
+        } else {
+          div.classList.add("received");
+          div.textContent = data.sender + ": " + data.text;
+        }
+
+        if (data.sender === username) {
+          div.textContent = data.text; // apne msg me naam nahi
+        }
+
+        messagesDiv.appendChild(div);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
       });
-      messagesDiv.scrollTop = messagesDiv.scrollHeight; // auto scroll down
     });
   </script>
 </body>
