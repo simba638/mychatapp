@@ -1,46 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Firebase Chat App 🚀</title>
+  <meta charset="UTF-8">
+  <title>My Chat App</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f9; }
-    h1 { text-align: center; }
-    #chat-box { 
-      border: 1px solid #ccc; 
-      padding: 10px; 
-      background: white; 
-      height: 400px; 
-      overflow-y: scroll; 
-    }
-    .msg { margin: 5px 0; padding: 5px; border-radius: 5px; }
-    .msg strong { color: #0077cc; }
-    #form { display: flex; margin-top: 10px; }
-    #name, #message { padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
-    #name { width: 20%; margin-right: 5px; }
-    #message { flex: 1; margin-right: 5px; }
-    button { padding: 10px 15px; border: none; border-radius: 5px; background: #0077cc; color: white; cursor: pointer; }
-    button:hover { background: #005fa3; }
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    #messages { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; margin-bottom: 10px; }
+    .msg { padding: 5px; border-bottom: 1px solid #eee; }
+    input { padding: 8px; width: 70%; }
+    button { padding: 8px; }
   </style>
 </head>
 <body>
-  <h1>🔥 My Firebase Chat App</h1>
-  <div id="chat-box"></div>
-
-  <div id="form">
-    <input type="text" id="name" placeholder="Your Name" required />
-    <input type="text" id="message" placeholder="Type a message..." required />
-    <button onclick="sendMessage()">Send</button>
-  </div>
+  <h2>🔥 My Chat App</h2>
+  <div id="messages"></div>
+  <input id="messageInput" type="text" placeholder="Type a message..." />
+  <button onclick="sendMessage()">Send</button>
 
   <script type="module">
-    // Import Firebase SDK
+    // Import Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
     import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot } 
       from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
-    // Your Firebase Config
+    // Your Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyC_z1WBPfo_OYXezN7t8zTV27nc3veWe9M",
       authDomain: "mychatapp-fdf70.firebaseapp.com",
@@ -51,46 +34,37 @@
       measurementId: "G-FQMC73V50K"
     };
 
-    // Initialize Firebase
+    // Init Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Reference to chat collection
-    const chatRef = collection(db, "messages");
-
     // Send message function
     async function sendMessage() {
-      const name = document.getElementById("name").value;
-      const message = document.getElementById("message").value;
-
-      if (name && message) {
-        await addDoc(chatRef, {
-          name: name,
-          message: message,
-          timestamp: serverTimestamp()
-        });
-        document.getElementById("message").value = "";
-      }
+      const input = document.getElementById("messageInput");
+      if (input.value.trim() === "") return;
+      await addDoc(collection(db, "messages"), {
+        text: input.value,
+        timestamp: serverTimestamp()
+      });
+      input.value = "";
     }
+    window.sendMessage = sendMessage; // expose function to button
 
-    // Listen for new messages (real-time)
-    const q = query(chatRef, orderBy("timestamp"));
-    const chatBox = document.getElementById("chat-box");
+    // Listen for messages
+    const q = query(collection(db, "messages"), orderBy("timestamp"));
+    const messagesDiv = document.getElementById("messages");
 
     onSnapshot(q, (snapshot) => {
-      chatBox.innerHTML = "";
+      messagesDiv.innerHTML = "";
       snapshot.forEach((doc) => {
         const data = doc.data();
         const msgDiv = document.createElement("div");
         msgDiv.classList.add("msg");
-        msgDiv.innerHTML = `<strong>${data.name}:</strong> ${data.message}`;
-        chatBox.appendChild(msgDiv);
+        msgDiv.textContent = data.text;
+        messagesDiv.appendChild(msgDiv);
       });
-      chatBox.scrollTop = chatBox.scrollHeight; // auto scroll
+      messagesDiv.scrollTop = messagesDiv.scrollHeight; // auto scroll down
     });
-
-    // Make sendMessage global
-    window.sendMessage = sendMessage;
   </script>
 </body>
 </html>
